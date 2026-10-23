@@ -100,8 +100,11 @@ async def start_web_server():
     port = int(os.getenv("PORT", "0"))
     if not port:
         return
+    async def health(request):
+        return web.Response(text="Bot is running")
+
     app = web.Application()
-    app.router.add_get("/", lambda request: web.Response(text="Bot is running"))
+    app.router.add_get("/", health)
     runner = web.AppRunner(app)
     await runner.setup()
     await web.TCPSite(runner, "0.0.0.0", port).start()
@@ -115,4 +118,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-    

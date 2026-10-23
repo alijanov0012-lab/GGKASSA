@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 
+from aiohttp import web
 from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.filters import Command, CommandObject, CommandStart
@@ -94,10 +95,24 @@ async def setup_menu():
             logging.warning("Не удалось задать меню для %s: %s", admin_id, e)
 
 
+async def start_web_server():
+    # Мини-сервер для Render (Web Service требует открытый порт)
+    port = int(os.getenv("PORT", "0"))
+    if not port:
+        return
+    app = web.Application()
+    app.router.add_get("/", lambda request: web.Response(text="Bot is running"))
+    runner = web.AppRunner(app)
+    await runner.setup()
+    await web.TCPSite(runner, "0.0.0.0", port).start()
+
+
 async def main():
+    await start_web_server()
     await setup_menu()
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+    
